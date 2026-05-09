@@ -883,10 +883,21 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
+  
+    .netlify-hidden { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
   </style>
 </head>
 
 <body>
+  <!-- Netlify Forms detection helper: keep this in the deployed HTML -->
+  <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="contact" />
+    <input name="bot-field" />
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <textarea name="message"></textarea>
+  </form>
+
   <main>
     <section class="hero" id="home">
       <div class="hero-copy">
@@ -1198,10 +1209,11 @@
       </div>
       <div class="contact-card">
         <p>Open to mobile app development opportunities, Flutter projects, and backend-connected app work.</p>
-        <form class="contact-form" id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <form class="contact-form" id="contactForm" name="contact" method="POST" action="/?success=true#contact" data-netlify="true" netlify-honeypot="bot-field">
           <input type="hidden" name="form-name" value="contact" />
-          <p style="display:none;">
-            <label>Do not fill this out if you are human: <input name="bot-field" /></label>
+          <input type="hidden" name="subject" value="New portfolio contact from ganesh9-portfolio.netlify.app" />
+          <p class="netlify-hidden" aria-hidden="true">
+            <label>Do not fill this out if you are human: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
           </p>
           <div class="form-row">
             <label for="name">Name</label>
@@ -1236,33 +1248,11 @@
     });
 
     const contactForm = document.getElementById('contactForm');
-    const encodeFormData = (data) => new URLSearchParams(data).toString();
-
-    contactForm?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const status = contactForm.querySelector('.form-status');
-      const submitButton = contactForm.querySelector('.submit-btn');
-
-      if (status) status.textContent = 'Sending...';
-      if (submitButton) submitButton.disabled = true;
-
-      try {
-        const response = await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: encodeFormData(new FormData(contactForm))
-        });
-
-        if (!response.ok) throw new Error('Form submission failed');
-
-        if (status) status.textContent = 'Thanks! Your message has been submitted.';
-        contactForm.reset();
-      } catch (error) {
-        if (status) status.textContent = 'Submission works after deploying this page on Netlify. For local testing, deploy the site first.';
-      } finally {
-        if (submitButton) submitButton.disabled = false;
-      }
-    });
+    const status = contactForm?.querySelector('.form-status');
+    if (new URLSearchParams(window.location.search).get('success') === 'true' && status) {
+      status.textContent = 'Thanks! Your message has been submitted.';
+      history.replaceState(null, '', window.location.pathname + '#contact');
+    }
   </script>
 </body>
 
